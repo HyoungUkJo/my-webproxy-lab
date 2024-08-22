@@ -59,6 +59,7 @@ void doit(int fd) {
     clienterror(fd, method, "501", "Not implemented", "Tiny does not implement this method");   //tiny서버에서는 get method만 처리한다. 이외의 요청이 오면 기각할 수 있게 한다.
     return;
   }
+  printf("Request URI : %s\n",uri);
   read_requesthdrs(&rio);
 
   /* Get메소드로부터 받아온 uri를 파싱한다. */
@@ -97,9 +98,9 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
   /* HTTP응답 */
   sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
   Rio_writen(fd, buf, strlen(buf));
-  sprintf(buf, "Content-type: text/html\r\n");
+  sprintf(buf, "Content-Type: text/html\r\n");
   Rio_writen(fd, buf, strlen(buf));
-  sprintf(buf, "Cntent-length: %d\r\n\r\n", (int)strlen(body));
+  sprintf(buf, "Cntent-Length: %d\r\n\r\n", (int)strlen(body));
   Rio_writen(fd, buf, strlen(buf));
   Rio_writen(fd, body, strlen(body));
 }
@@ -154,7 +155,8 @@ void serve_static(int fd, char *filename, int filesize){
   sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);
   sprintf(buf, "%sConnection: close\r\n", buf);
   sprintf(buf, "%sContent-lenght: %d\r\n", buf, filesize);
-  sprintf(buf, "%sContent-type: %s\r\n\r\n",buf, filetype);
+  sprintf(buf, "%sContent-type: %s\r\n",buf, filetype);
+  sprintf(buf, "%sContent-Disposition: inline\r\n\r\n",buf);
   Rio_writen(fd, buf,  strlen(buf));
   printf("Response headers:\n");
   printf("%s", buf);
@@ -177,6 +179,8 @@ void get_filetype(char *filename, char *filetype){
     strcpy(filetype, "image/png");
   else if (strstr(filename, "jpg"))
     strcpy(filetype, "image/jpeg");
+  else if (strstr(filename, "mpg"))
+    strcpy(filetype, "video/mp4");  
   else
     strcpy(filetype, "text/plain");
 }
